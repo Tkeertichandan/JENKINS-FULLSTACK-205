@@ -2,7 +2,8 @@ pipeline {
     agent any
 
     environment {
-        PATH = "/usr/local/bin:${env.PATH}" // Add Node.js & npm path
+        // Add Node.js path and Maven path so Jenkins can run npm & mvn
+        PATH = "/usr/local/bin:/Users/keertichandanthatavarthi/Softwares/apache-maven-3.9.11/bin:${env.PATH}"
     }
 
     stages {
