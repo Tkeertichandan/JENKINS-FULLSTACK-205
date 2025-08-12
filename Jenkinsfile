@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        PATH = "/usr/local/bin:${env.PATH}" // Add Node.js & npm path
+    }
+
     stages {
 
         // ===== FRONTEND BUILD =====
