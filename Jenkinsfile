@@ -2,8 +2,9 @@ pipeline {
     agent any
 
     environment {
-        // Add Node.js path and Maven path so Jenkins can run npm & mvn
+        // Add Node.js and Maven paths
         PATH = "/usr/local/bin:/Users/keertichandanthatavarthi/Softwares/apache-maven-3.9.11/bin:${env.PATH}"
+        TOMCAT_HOME = "/Users/keertichandanthatavarthi/Softwares/apache-tomcat-10.1.43"
     }
 
     stages {
@@ -22,16 +23,16 @@ pipeline {
         stage('Deploy Frontend to Tomcat') {
             steps {
                 sh '''
-                TOMCAT_PATH="/Users/keertichandanthatavarthi/apache-tomcat-10.1.43/webapps/reactstudentapi"
+                FRONTEND_PATH="$TOMCAT_HOME/webapps/reactstudentapi"
 
                 # Remove old frontend
-                if [ -d "$TOMCAT_PATH" ]; then
-                    rm -rf "$TOMCAT_PATH"
+                if [ -d "$FRONTEND_PATH" ]; then
+                    rm -rf "$FRONTEND_PATH"
                 fi
 
                 # Create new folder and copy dist files
-                mkdir -p "$TOMCAT_PATH"
-                cp -R STUDENTAPI-REACT/dist/* "$TOMCAT_PATH/"
+                mkdir -p "$FRONTEND_PATH"
+                cp -R STUDENTAPI-REACT/dist/* "$FRONTEND_PATH/"
                 '''
             }
         }
@@ -49,18 +50,28 @@ pipeline {
         stage('Deploy Backend to Tomcat') {
             steps {
                 sh '''
-                TOMCAT_WEBAPPS="/Users/keertichandanthatavarthi/apache-tomcat-10.1.43/webapps"
+                WEBAPPS_PATH="$TOMCAT_HOME/webapps"
 
                 # Remove old WAR and exploded folder
-                rm -f "$TOMCAT_WEBAPPS/springbootstudentapi.war"
-                rm -rf "$TOMCAT_WEBAPPS/springbootstudentapi"
+                rm -f "$WEBAPPS_PATH/springbootstudentapi.war"
+                rm -rf "$WEBAPPS_PATH/springbootstudentapi"
 
                 # Copy new WAR
-                cp STUDENTAPI-SPRINGBOOT/target/*.war "$TOMCAT_WEBAPPS/"
+                cp STUDENTAPI-SPRINGBOOT/target/*.war "$WEBAPPS_PATH/"
                 '''
             }
         }
 
+        // ===== RESTART TOMCAT =====
+        stage('Restart Tomcat') {
+            steps {
+                sh '''
+                $TOMCAT_HOME/bin/shutdown.sh || true
+                sleep 3
+                $TOMCAT_HOME/bin/startup.sh
+                '''
+            }
+        }
     }
 
     post {
